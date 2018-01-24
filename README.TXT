@@ -1,5 +1,11 @@
 Note
-====
+===============
+
+This version of WiringPi add some minimal modify to support Raspberry Pi 3 Model B (aarch64) 
+and to make a clean  the process for an ArchLinux package creation.
+
+WiringPi README
+===============
 
 This is an unofficial mirror of WiringPi to support ports (Python/Ruby/etc).
 

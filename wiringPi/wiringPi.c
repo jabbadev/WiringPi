@@ -253,7 +253,7 @@ const char *piMakerNames [16] =
   "Sony",	//	 0
   "Egoman",	//	 1
   "Embest",	//	 2
-  "Unknown",	//	 3
+  "Sony Japan",	//	 3
   "Embest",	//	 4
   "Unknown05",	//	 5
   "Unknown06",	//	 6
@@ -687,7 +687,7 @@ static void piGpioLayoutOops (const char *why)
 
 int piGpioLayout (void)
 {
-  FILE *cpuFd ;
+  FILE *cpuFd, *modelFd ;
   char line [120] ;
   char *c ;
   static int  gpioLayout = -1 ;
@@ -706,8 +706,21 @@ int piGpioLayout (void)
     if (strncmp (line, "Hardware", 8) == 0)
       break ;
 
-  if (strncmp (line, "Hardware", 8) != 0)
-    piGpioLayoutOops ("No \"Hardware\" line") ;
+  if (strncmp (line, "Hardware", 8) != 0) {
+    if ((modelFd = fopen ("/proc/device-tree/model", "r")) == NULL){
+      piGpioLayoutOops ("Unable to open /proc/device-tree/model") ; 
+    }
+    else {
+      fgets(line,120,modelFd);
+      fclose(modelFd);
+      if (strstr(line,"Raspberry Pi 3 Model B")){
+	return 2;
+      }
+      else {
+        piGpioLayoutOops ("No \"Hardware\" line") ;
+      }
+    }
+  } 
 
   if (wiringPiDebug)
     printf ("piGpioLayout: Hardware: %s\n", line) ;
@@ -880,7 +893,7 @@ int piBoardRev (void)
 
 void piBoardId (int *model, int *rev, int *mem, int *maker, int *warranty)
 {
-  FILE *cpuFd ;
+  FILE *cpuFd, *modelFd ;
   char line [120] ;
   char *c ;
   unsigned int revision ;
@@ -900,8 +913,26 @@ void piBoardId (int *model, int *rev, int *mem, int *maker, int *warranty)
 
   fclose (cpuFd) ;
 
-  if (strncmp (line, "Revision", 8) != 0)
-    piGpioLayoutOops ("No \"Revision\" line") ;
+  if (strncmp (line, "Revision", 8) != 0){
+    if ((modelFd = fopen ("/proc/device-tree/model", "r")) == NULL){
+      piGpioLayoutOops ("Unable to open /proc/device-tree/model") ; 
+    }
+    else {
+      fgets(line,120,modelFd);
+      fclose(modelFd);
+      if (strstr(line,"Raspberry Pi 3 Model B")){
+        *model    = 8 ;
+        *rev      = 2 ;
+        *mem      = 2 ;
+        *maker    = 3  ;
+        *warranty = 1 ;
+	return;
+      }
+      else {
+        piGpioLayoutOops ("No \"Revision\" line") ;
+      }
+    }
+  }
 
 // Chomp trailing CR/NL
 

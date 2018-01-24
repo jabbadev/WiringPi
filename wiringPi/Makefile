@@ -79,6 +79,7 @@ $(STATIC):	$(OBJ)
 $(DYNAMIC):	$(OBJ)
 	$Q echo "[Link (Dynamic)]"
 	$Q $(CC) -shared -Wl,-soname,libwiringPi.so$(WIRINGPI_SONAME_SUFFIX) -o libwiringPi.so.$(VERSION) $(LIBS) $(OBJ)
+	$Q ln -s libwiringPi.so.$(VERSION) libwiringPi.so
 
 .c.o:
 	$Q echo [Compile] $<
@@ -95,15 +96,18 @@ tags:	$(SRC)
 	$Q echo [ctags]
 	$Q ctags $(SRC)
 
-
-.PHONY:	install
-install:	$(DYNAMIC)
+.PHONY:	create-pkg
+create-pkg:	$(DYNAMIC)
 	$Q echo "[Install Headers]"
 	$Q install -m 0755 -d						$(DESTDIR)$(PREFIX)/include
 	$Q install -m 0644 $(HEADERS)					$(DESTDIR)$(PREFIX)/include
 	$Q echo "[Install Dynamic Lib]"
 	$Q install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
 	$Q install -m 0755 libwiringPi.so.$(VERSION)			$(DESTDIR)$(PREFIX)/lib/libwiringPi.so.$(VERSION)
+
+.PHONY:	install
+install:	$(DYNAMIC)
+	$(MAKE) create-pkg
 	$Q ln -sf $(DESTDIR)$(PREFIX)/lib/libwiringPi.so.$(VERSION)	$(DESTDIR)/lib/libwiringPi.so
 	$Q $(LDCONFIG)
 
